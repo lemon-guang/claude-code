@@ -80,6 +80,7 @@ import { asSessionId, asAgentId } from '../types/ids.js'
 import { logForDebugging } from '../utils/debug.js'
 import { QueryGuard } from '../utils/QueryGuard.js'
 import { isEnvTruthy } from '../utils/envUtils.js'
+import { getAPIProvider } from '../utils/model/providers.js'
 import { formatTokens, truncateToWidth } from '../utils/format.js'
 import { consumeEarlyInput } from '../utils/earlyInput.js'
 
@@ -1984,7 +1985,16 @@ export function REPL({
   const [streamingText, setStreamingText] = useState<string | null>(null)
   const reducedMotion =
     useAppState(s => s.settings.prefersReducedMotion) ?? false
-  const showStreamingText = !reducedMotion && !hasCursorUpViewportYankBug()
+  const isOpenAIProvider = getAPIProvider() === 'openai'
+  // Windows terminals can yank viewport on cursor-up sequences; keep the
+  // safety default, but allow explicit opt-in for users who prefer live text.
+  const forceStreamingText = isEnvTruthy(
+    process.env.CLAUDE_CODE_FORCE_STREAMING_TEXT,
+  )
+  const showStreamingText =
+    forceStreamingText ||
+    (!reducedMotion &&
+      (isOpenAIProvider || !hasCursorUpViewportYankBug()))
   const onStreamingText = useCallback(
     (f: (current: string | null) => string | null) => {
       if (!showStreamingText) return
@@ -1999,7 +2009,15 @@ export function REPL({
   // immediately hides the streaming preview.
   const visibleStreamingText =
     streamingText && showStreamingText
-      ? streamingText.substring(0, streamingText.lastIndexOf('\n') + 1) || null
+      ? (() => {
+          const lastNewline = streamingText.lastIndexOf('\n')
+          if (lastNewline >= 0) {
+            return streamingText.substring(0, lastNewline + 1) || null
+          }
+          // Some providers stream long single-line text with no newline. Show
+          // partial text after a small threshold so users still perceive live output.
+          return streamingText.length >= 24 ? streamingText : null
+        })()
       : null
 
   const [lastQueryCompletionTime, setLastQueryCompletionTime] = useState(0)
