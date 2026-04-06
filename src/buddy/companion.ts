@@ -2,6 +2,7 @@ import { getGlobalConfig } from '../utils/config.js'
 import {
   type Companion,
   type CompanionBones,
+  type CompanionOverrides,
   EYES,
   HATS,
   RARITIES,
@@ -125,12 +126,41 @@ export function companionUserId(): string {
   return config.oauthAccount?.accountUuid ?? config.userID ?? 'anon'
 }
 
+function clampStat(value: number): number {
+  return Math.max(0, Math.min(100, Math.round(value)))
+}
+
+function applyOverrides(
+  bones: CompanionBones,
+  overrides?: CompanionOverrides,
+): CompanionBones {
+  if (!overrides) return bones
+  const mergedStats = overrides.stats
+    ? {
+        ...bones.stats,
+        ...Object.fromEntries(
+          Object.entries(overrides.stats).map(([name, value]) => [
+            name,
+            typeof value === 'number' ? clampStat(value) : value,
+          ]),
+        ),
+      }
+    : bones.stats
+
+  return {
+    ...bones,
+    ...overrides,
+    stats: mergedStats,
+  }
+}
+
 // Regenerate bones from seed or userId, merge with stored soul.
 export function getCompanion(): Companion | undefined {
   const stored = getGlobalConfig().companion
   if (!stored) return undefined
   const seed = stored.seed ?? companionUserId()
   const { bones } = rollWithSeed(seed)
+  const mergedBones = applyOverrides(bones, stored.overrides)
   // bones last so stale bones fields in old-format configs get overridden
-  return { ...stored, ...bones }
+  return { ...stored, ...mergedBones }
 }

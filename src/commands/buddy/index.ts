@@ -4,8 +4,8 @@ import { isBuddyLive } from '../../buddy/useBuddyNotification.js'
 const buddy = {
   type: 'local-jsx',
   name: 'buddy',
-  description: 'Hatch a coding companion · pet, off',
-  argumentHint: '[pet|off]',
+  description: 'Hatch a coding companion · show, set, reset, pet, off',
+  argumentHint: '[show|set|reset|pet|off|on]',
   immediate: true,
   get isHidden() {
     return !isBuddyLive()

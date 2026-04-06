@@ -7,6 +7,17 @@ import { Box, Text } from '../ink.js';
 import { useInput } from '../ink.js';
 import { renderSprite } from './sprites.js';
 import { RARITY_COLORS, RARITY_STARS, STAT_NAMES, type Companion } from './types.js';
+import { getGlobalConfig } from '../utils/config.js';
+
+const RAINBOW_COLORS = [
+  'rainbow_red',
+  'rainbow_orange',
+  'rainbow_yellow',
+  'rainbow_green',
+  'rainbow_blue',
+  'rainbow_indigo',
+  'rainbow_violet',
+] as const;
 
 const CARD_WIDTH = 40;
 const CARD_PADDING_X = 2;
@@ -31,7 +42,10 @@ export function CompanionCard({
   lastReaction?: string;
   onDone?: (result?: string, options?: { display?: string }) => void;
 }) {
-  const color = RARITY_COLORS[companion.rarity];
+  const rainbowEnabled = getGlobalConfig().companion?.overrides?.rainbow === true;
+  const color = rainbowEnabled
+    ? RAINBOW_COLORS[0]
+    : RARITY_COLORS[companion.rarity];
   const stars = RARITY_STARS[companion.rarity];
   const sprite = renderSprite(companion, 0);
 
@@ -71,7 +85,14 @@ export function CompanionCard({
       {/* Sprite */}
       <Box flexDirection="column" marginY={1}>
         {sprite.map((line, i) => (
-          <Text key={i} color={color}>
+          <Text
+            key={i}
+            color={
+              rainbowEnabled
+                ? RAINBOW_COLORS[i % RAINBOW_COLORS.length]
+                : color
+            }
+          >
             {line}
           </Text>
         ))}

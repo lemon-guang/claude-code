@@ -32,6 +32,20 @@ const PET_HEARTS = [
   '·    ·   ·  ',
 ]
 
+const RAINBOW_COLORS: Array<keyof Theme> = [
+  'rainbow_red',
+  'rainbow_orange',
+  'rainbow_yellow',
+  'rainbow_green',
+  'rainbow_blue',
+  'rainbow_indigo',
+  'rainbow_violet',
+]
+
+function rainbowColorAt(offset: number): keyof Theme {
+  return RAINBOW_COLORS[((offset % RAINBOW_COLORS.length) + RAINBOW_COLORS.length) % RAINBOW_COLORS.length]!
+}
+
 function wrap(text: string, width: number): string[] {
   const words = text.split(' ')
   const lines: string[] = []
@@ -177,7 +191,8 @@ export function CompanionSprite(): React.ReactNode {
   const companion = getCompanion()
   if (!companion || getGlobalConfig().companionMuted) return null
 
-  const color = RARITY_COLORS[companion.rarity]
+  const rainbowEnabled = getGlobalConfig().companion?.overrides?.rainbow === true
+  const color = rainbowEnabled ? rainbowColorAt(tick) : RARITY_COLORS[companion.rarity]
   const colWidth = spriteColWidth(stringWidth(companion.name))
 
   const bubbleAge = reaction ? tick - lastSpokeTick.current : 0
@@ -263,7 +278,16 @@ export function CompanionSprite(): React.ReactNode {
       width={colWidth}
     >
       {sprite.map((line, i) => (
-        <Text key={i} color={i === 0 && heartFrame ? 'autoAccept' : color}>
+        <Text
+          key={i}
+          color={
+            i === 0 && heartFrame
+              ? 'autoAccept'
+              : rainbowEnabled
+                ? rainbowColorAt(tick + i)
+                : color
+          }
+        >
           {line}
         </Text>
       ))}
@@ -340,7 +364,11 @@ export function CompanionFloatingBubble(): React.ReactNode {
   return (
     <SpeechBubble
       text={reaction}
-      color={RARITY_COLORS[companion.rarity]}
+      color={
+        getGlobalConfig().companion?.overrides?.rainbow === true
+          ? rainbowColorAt(tick)
+          : RARITY_COLORS[companion.rarity]
+      }
       fading={tick >= BUBBLE_SHOW - FADE_WINDOW}
       tail="down"
     />

@@ -23,11 +23,39 @@ FEATURE_BUDDY=1 bun run dev
 | 命令 | 说明 |
 |---|---|
 | `/buddy` | 查看当前宠物信息和属性 |
-| `/buddy hatch` | 孵化一只新宠物（首次使用） |
-| `/buddy rehatch` | 重新随机生成宠物（替换现有） |
+| `/buddy show` | 以纯文本查看当前属性与覆盖项 |
+| `/buddy set <key> <value>` | 设置自定义项（如 name、species、stats.WISDOM） |
+| `/buddy reset <key\|all>` | 清除指定覆盖项，或重置 name/personality，或恢复全部随机 |
 | `/buddy pet` | 撸宠物，触发爱心动画 |
-| `/buddy mute` | 静音宠物（隐藏） |
-| `/buddy unmute` | 取消静音 |
+| `/buddy off` 或 `/buddy mute` | 静音宠物（隐藏） |
+| `/buddy on` 或 `/buddy unmute` | 取消静音 |
+
+### 可配置字段
+
+`/buddy set` 当前支持以下 key：
+
+- `name`
+- `personality`
+- `species`
+- `rarity`
+- `eye`
+- `hat`
+- `shiny`
+- `rainbow`
+- `stats.<STAT_NAME>`（如 `stats.WISDOM`，范围 0-100）
+
+示例：
+
+```bash
+/buddy set name 小白
+/buddy set species cat
+/buddy set rarity epic
+/buddy set rainbow true
+/buddy set stats.WISDOM 90
+/buddy reset stats.WISDOM
+/buddy reset name
+/buddy reset all
+```
 
 ## 宠物属性
 
@@ -72,7 +100,7 @@ FEATURE_BUDDY=1 bun run dev
 
 ## 数据存储
 
-宠物信息存储在 `~/.claude.json` 的 `companion` 字段中。宠物的外观属性（物种、稀有度、属性值等）基于用户 ID 的哈希确定性生成，不可通过编辑配置文件来篡改稀有度。
+宠物信息存储在 `~/.claude.json` 的 `companion` 字段中。默认情况下，宠物外观属性（物种、稀有度、属性值等）基于用户 ID 的哈希确定性生成；当使用 `/buddy set` 时，会将覆盖项保存到 `companion.overrides`，并在渲染前合并到随机结果上。
 
 ## 相关源码
 

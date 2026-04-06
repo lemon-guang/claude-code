@@ -107,6 +107,16 @@ export type CompanionBones = {
   stats: Record<StatName, number>
 }
 
+export type CompanionOverrides = {
+  rarity?: Rarity
+  species?: Species
+  eye?: Eye
+  hat?: Hat
+  shiny?: boolean
+  rainbow?: boolean
+  stats?: Partial<Record<StatName, number>>
+}
+
 // Model-generated soul — stored in config after first hatch
 export type CompanionSoul = {
   name: string
@@ -121,8 +131,12 @@ export type Companion = CompanionBones &
 
 // What actually persists in config. Bones are regenerated from hash(userId)
 // on every read so species renames don't break stored companions and users
-// can't edit their way to a legendary.
-export type StoredCompanion = CompanionSoul & { hatchedAt: number }
+// can't edit their way to a legendary by default. `overrides` is optional and
+// allows explicit user customization via /buddy set.
+export type StoredCompanion = CompanionSoul & {
+  hatchedAt: number
+  overrides?: CompanionOverrides
+}
 
 export const RARITY_WEIGHTS = {
   common: 60,
