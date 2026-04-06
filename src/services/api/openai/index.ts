@@ -58,7 +58,7 @@ export async function* queryModelOpenAI(
     // Filter out non-standard tools (server tools like advisor)
     const standardTools = toolSchemas.filter(
       (t): t is BetaToolUnion & { type: string } => {
-        const anyT = t as Record<string, unknown>
+        const anyT = t as unknown as Record<string, unknown>
         return anyT.type !== 'advisor_20260301' && anyT.type !== 'computer_20250124'
       },
     )
@@ -71,7 +71,7 @@ export async function* queryModelOpenAI(
     // 5. Get client and make streaming request
     const client = getOpenAIClient({
       maxRetries: 0,
-      fetchOverride: options.fetchOverride,
+      fetchOverride: options.fetchOverride as unknown as typeof fetch | undefined,
       source: options.querySource,
     })
 
@@ -219,7 +219,8 @@ export async function* queryModelOpenAI(
     yield createAssistantAPIErrorMessage({
       content: `API Error: ${errorMessage}`,
       apiError: 'api_error',
-      error: error instanceof Error ? error : new Error(String(error)),
+      error: 'unknown',
+      errorDetails: errorMessage,
     })
   }
 }
