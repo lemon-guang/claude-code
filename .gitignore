@@ -26,3 +26,6 @@ src/utils/vendor/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Claude local settings
+.claude/
